@@ -1,0 +1,196 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  
+    width: 100%;
+  
+    background: rgba(255, 255, 255, 0.92);
+  
+    backdrop-filter: blur(15px);
+  
+    border-bottom: 1px solid #e8ebf2;
+  }
+  
+  
+  .navbar-container {
+    width: min(1400px, 90%);
+  
+    height: 82px;
+  
+    margin: auto;
+  
+    display: flex;
+  
+    align-items: center;
+  
+    justify-content: space-between;
+  }
+  
+  
+  /* LOGO */
+  
+  .navbar-logo {
+    text-decoration: none;
+  
+    font-size: 28px;
+  
+    font-weight: 800;
+  
+    letter-spacing: -1px;
+  
+    color: #172033;
+  }
+  
+  
+  .navbar-logo span {
+    color: #5b52ea;
+  }
+  
+  
+  /* NAVIGATION */
+  
+  .navbar-links {
+    display: flex;
+  
+    align-items: center;
+  
+    gap: 40px;
+  
+    margin-left: 100px;
+  }
+  
+  
+  .nav-link {
+    position: relative;
+  
+    text-decoration: none;
+  
+    color: #475569;
+  
+    font-size: 16px;
+  
+    font-weight: 600;
+  
+    padding: 8px 0;
+  
+    transition: 0.2s ease;
+  }
+  
+  
+  .nav-link:hover {
+    color: #5b52ea;
+  }
+  
+  
+  .nav-link.active {
+    color: #5b52ea;
+  }
+  
+  
+  .nav-link.active::after {
+    content: "";
+  
+    position: absolute;
+  
+    left: 0;
+  
+    right: 0;
+  
+    bottom: 0;
+  
+    height: 2px;
+  
+    border-radius: 5px;
+  
+    background: #5b52ea;
+  }
+  
+  
+  /* BUTTON */
+  
+  .navbar-button {
+    display: inline-flex;
+  
+    align-items: center;
+  
+    gap: 10px;
+  
+    padding: 13px 21px;
+  
+    border-radius: 11px;
+  
+    background: #5549e8;
+  
+    color: white;
+  
+    text-decoration: none;
+  
+    font-size: 15px;
+  
+    font-weight: 700;
+  
+    box-shadow:
+      0 8px 20px rgba(85, 73, 232, 0.2);
+  
+    transition: 0.25s ease;
+  }
+  
+  
+  .navbar-button:hover {
+    transform: translateY(-2px);
+  
+    background: #473bd8;
+  
+    box-shadow:
+      0 12px 25px rgba(85, 73, 232, 0.3);
+  }
+  
+  
+  .navbar-button span {
+    font-size: 18px;
+  }
+  
+  
+  /* RESPONSIVE */
+  
+  @media (max-width: 850px) {
+  
+    .navbar-links {
+      gap: 20px;
+  
+      margin-left: 0;
+    }
+  
+  }
+  
+  
+  @media (max-width: 650px) {
+  
+    .navbar-container {
+      height: auto;
+  
+      padding: 18px 0;
+  
+      flex-wrap: wrap;
+  
+      gap: 15px;
+    }
+  
+    .navbar-links {
+      order: 3;
+  
+      width: 100%;
+  
+      justify-content: center;
+    }
+  
+    .navbar-button {
+      padding: 10px 15px;
+    }
+  
+    .navbar-logo {
+      font-size: 23px;
+    }
+  
+  }

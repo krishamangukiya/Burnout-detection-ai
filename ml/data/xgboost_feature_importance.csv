@@ -1,0 +1,38 @@
+Feature,Importance
+numerical__stress_level,0.60270643
+numerical__has_therapy,0.08608343
+numerical__work_hours_per_week,0.050669093
+numerical__seeks_professional_help,0.0454425
+numerical__depression_score,0.040833335
+numerical__anxiety_score,0.037733663
+numerical__work_life_balance,0.025873108
+numerical__manager_support,0.021600207
+numerical__overtime_hours,0.016431559
+numerical__social_support_score,0.0039117835
+numerical__sleep_hours,0.0038903505
+numerical__experience_years,0.0034550398
+numerical__screen_time_hours,0.0034147277
+numerical__physical_activity_days,0.0032945992
+numerical__job_satisfaction,0.0032490264
+categorical__gender_Male,0.0031212203
+numerical__deadlines_missed,0.0030821923
+numerical__age,0.0029888777
+categorical__work_mode_Onsite,0.0029501207
+numerical__meetings_per_day,0.0029412347
+categorical__job_role_QA Engineer,0.00289546
+categorical__work_mode_Remote,0.002795819
+categorical__job_role_DevOps,0.002709569
+numerical__caffeine_intake,0.002690725
+categorical__company_size_Startup,0.0024524606
+categorical__job_role_Product Manager,0.0023964602
+categorical__company_size_Large,0.0022917693
+categorical__job_role_Software Engineer,0.0021788722
+categorical__company_size_MNC,0.0020428519
+categorical__job_role_Frontend Developer,0.0019875136
+categorical__job_role_ML Engineer,0.0019696837
+categorical__work_mode_Hybrid,0.0018896153
+categorical__company_size_Mid-size,0.0018836835
+categorical__gender_Non-binary,0.0018469553
+categorical__job_role_Backend Developer,0.001801973
+categorical__job_role_Data Scientist,0.0016759952
+categorical__gender_Female,0.00081798533
