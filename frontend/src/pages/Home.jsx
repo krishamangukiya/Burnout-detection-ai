@@ -33,9 +33,18 @@ function Home() {
               <span>→</span>
             </button>
 
-            <button className="secondary-btn">
-              See How It Works
-              <span>→</span>
+            <button
+              className="secondary-btn"
+              onClick={() => {
+                document
+                  .getElementById("how-it-works")
+                  ?.scrollIntoView({
+                    behavior: "smooth",
+                  });
+              }}
+            >
+              How It Works
+              <span>↓</span>
             </button>
 
           </div>

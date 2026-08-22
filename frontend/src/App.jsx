@@ -1,11 +1,9 @@
-import React from "react";
 import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import CheckBurnout from "./pages/CheckBurnout";
-import Result from "./pages/Result";
-
-import "./App.css";
+import BurnoutResult from "./pages/BurnoutResult";
+import Recommendations from "./pages/Recommendations";
 
 function App() {
   return (
@@ -23,7 +21,12 @@ function App() {
 
       <Route
         path="/result"
-        element={<Result />}
+        element={<BurnoutResult />}
+      />
+
+      <Route
+        path="/recommendations"
+        element={<Recommendations />}
       />
 
     </Routes>

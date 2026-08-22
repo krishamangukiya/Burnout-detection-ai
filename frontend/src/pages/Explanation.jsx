@@ -1,74 +1,132 @@
+import { Link } from "react-router-dom";
+
+const explanationData = [
+  {
+    feature: "Screen Time",
+    value: "8.5 hours",
+    impact: 82,
+    direction: "increases",
+  },
+  {
+    feature: "Stress Level",
+    value: "8 / 10",
+    impact: 76,
+    direction: "increases",
+  },
+  {
+    feature: "Sleep Hours",
+    value: "5.5 hours",
+    impact: 68,
+    direction: "increases",
+  },
+  {
+    feature: "Work Hours",
+    value: "48 hours/week",
+    impact: 54,
+    direction: "increases",
+  },
+  {
+    feature: "Job Satisfaction",
+    value: "4 / 10",
+    impact: 43,
+    direction: "increases",
+  },
+];
+
 function Explanation() {
-    return (
-      <div className="page-container">
-  
-        <section className="page-hero">
-  
-          <p className="section-label">
-            EXPLAINABLE AI
-          </p>
-  
-          <h1>
-            Why Did The Model
-            <span> Predict This?</span>
-          </h1>
-  
+  return (
+    <main className="explanation-page">
+      <section className="result-header">
+        <span className="assessment-label">
+          EXPLAINABLE AI
+        </span>
+
+        <h1>
+          Why did the model give you
+          <span> this result?</span>
+        </h1>
+
+        <p>
+          SHAP-based explainability helps show which
+          factors contributed most to the predicted
+          burnout risk.
+        </p>
+      </section>
+
+      <section className="explanation-card">
+        <div className="explanation-card-header">
+          <div>
+            <span>MODEL EXPLANATION</span>
+            <h2>Feature Contribution</h2>
+          </div>
+
+          <div className="xai-badge">
+            SHAP
+          </div>
+        </div>
+
+        <div className="shap-list">
+          {explanationData.map((item, index) => (
+            <div className="shap-row" key={index}>
+              <div className="shap-info">
+                <strong>{item.feature}</strong>
+                <span>{item.value}</span>
+              </div>
+
+              <div className="shap-bar">
+                <div
+                  className="shap-value"
+                  style={{
+                    width: `${item.impact}%`,
+                  }}
+                />
+              </div>
+
+              <strong className="shap-percent">
+                +{item.impact}%
+              </strong>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="xai-info">
+        <div className="xai-info-card">
+          <span>01</span>
+          <h3>Prediction</h3>
           <p>
-            Understand the factors that influenced your burnout risk
-            prediction.
+            The trained ML model estimates your burnout
+            risk from the submitted features.
           </p>
-  
-        </section>
-  
-  
-        <section className="explanation-grid">
-  
-          <div className="explanation-card">
-  
-            <h2>Top Contributing Factors</h2>
-  
-            <div className="factor">
-              <span>Workload</span>
-              <strong>High</strong>
-            </div>
-  
-            <div className="factor">
-              <span>Working Hours</span>
-              <strong>High</strong>
-            </div>
-  
-            <div className="factor">
-              <span>Sleep</span>
-              <strong>Low</strong>
-            </div>
-  
-            <div className="factor">
-              <span>Job Satisfaction</span>
-              <strong>Moderate</strong>
-            </div>
-  
-          </div>
-  
-  
-          <div className="explanation-card">
-  
-            <h2>Model Explanation</h2>
-  
-            <p>
-              These factors had the greatest influence on the model's
-              prediction for this assessment.
-            </p>
-  
-            <div className="chart-placeholder">
-              SHAP Visualization
-            </div>
-  
-          </div>
-  
-        </section>
-  
-      </div>
-    );
-  }
-  
-  export default Explanation;
+        </div>
+
+        <div className="xai-info-card">
+          <span>02</span>
+          <h3>Explanation</h3>
+          <p>
+            SHAP identifies how individual features
+            influenced the model output.
+          </p>
+        </div>
+
+        <div className="xai-info-card">
+          <span>03</span>
+          <h3>Understanding</h3>
+          <p>
+            The result becomes easier to understand
+            instead of being a black-box prediction.
+          </p>
+        </div>
+      </section>
+
+      <Link
+        to="/recommendations"
+        className="assessment-primary-btn centered-btn"
+      >
+        Continue to Recommendations →
+      </Link>
+    </main>
+  );
+}
+
+export default Explanation;
