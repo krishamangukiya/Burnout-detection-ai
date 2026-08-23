@@ -1,35 +1,44 @@
-import { Routes, Route } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
+// import About from "./pages/About";
 import CheckBurnout from "./pages/CheckBurnout";
-import BurnoutResult from "./pages/BurnoutResult";
-import Recommendations from "./pages/Recommendations";
+import Burnout from "./pages/BurnoutResult";
+import Recommendation from "./pages/Recommendations";
+import HowItWorks from "./pages/HowitWorks";
+
+import "./App.css";
 
 function App() {
   return (
-    <Routes>
+      <Routes>
 
-      <Route
-        path="/"
-        element={<Home />}
-      />
+        <Route path="/" element={<Home />} />
 
-      <Route
-        path="/check-burnout"
-        element={<CheckBurnout />}
-      />
+        {/* <Route path="/about" element={<About />} /> */}
 
-      <Route
-        path="/result"
-        element={<BurnoutResult />}
-      />
+        <Route
+          path="/check-burnout"
+          element={<CheckBurnout />}
+        />
 
-      <Route
-        path="/recommendations"
-        element={<Recommendations />}
-      />
+        <Route
+          path="/burnout"
+          element={<BurnoutResult />}
+        />
 
-    </Routes>
+        <Route
+          path="/recommendations"
+          element={<Recommendations />}
+        />
+
+        <Route
+          path="/how-it-works"
+          element={<HowItWorks />}
+        />
+
+      </Routes>
   );
 }
 
