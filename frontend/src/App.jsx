@@ -1,22 +1,30 @@
-import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
-// import About from "./pages/About";
-import CheckBurnout from "./pages/CheckBurnout";
-import Burnout from "./pages/BurnoutResult";
-import Recommendation from "./pages/Recommendations";
+import About from "./pages/About";
 import HowItWorks from "./pages/HowitWorks";
+import CheckBurnout from "./pages/CheckBurnout";
+import Result from "./pages/BurnoutResult";
+import Recommendations from "./pages/Recommendations";
 
 import "./App.css";
 
 function App() {
   return (
+  
       <Routes>
 
         <Route path="/" element={<Home />} />
 
-        {/* <Route path="/about" element={<About />} /> */}
+        <Route
+          path="/about"
+          element={<About />}
+        />
+
+        <Route
+          path="/how-it-works"
+          element={<HowitWorks />}
+        />
 
         <Route
           path="/check-burnout"
@@ -24,8 +32,8 @@ function App() {
         />
 
         <Route
-          path="/burnout"
-          element={<BurnoutResult />}
+          path="/result"
+          element={<Result />}
         />
 
         <Route
@@ -33,12 +41,8 @@ function App() {
           element={<Recommendations />}
         />
 
-        <Route
-          path="/how-it-works"
-          element={<HowItWorks />}
-        />
-
       </Routes>
+
   );
 }
 
