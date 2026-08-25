@@ -3831,3 +3831,285 @@
     }
   }
 
+/* =========================================
+   HOW IT WORKS PAGE
+   ========================================= */
+
+/* ---------- PAGE HERO ---------- */
+
+.page-hero {
+  padding: 110px 7% 90px;
+  background: #f7f9fc;
+  text-align: center;
+}
+
+.page-hero .section-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section-tag {
+  display: inline-block;
+  margin-bottom: 18px;
+
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.page-hero h1 {
+  margin: 0 0 22px;
+
+  color: var(--dark);
+  font-size: clamp(42px, 5vw, 64px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+
+.gradient-text {
+  display: block;
+  color: var(--primary);
+}
+
+.page-hero p {
+  max-width: 700px;
+  margin: 0 auto;
+
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+
+/* =========================================
+   PROCESS SECTION
+   ========================================= */
+
+.process-section {
+  padding: 100px 7%;
+  background: #ffffff;
+}
+
+.section-container {
+  width: 100%;
+  max-width: 1150px;
+  margin: 0 auto;
+}
+
+
+/* ---------- PROCESS GRID ---------- */
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 18px;
+
+  width: 100%;
+}
+
+
+/* ---------- PROCESS CARD ---------- */
+
+.process-item {
+  min-height: 220px;
+
+  padding: 32px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--border);
+  border-radius: 22px;
+
+  display: flex;
+  flex-direction: column;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.process-item:hover {
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 20px 45px rgba(30, 45, 80, 0.08);
+}
+
+
+/* ---------- PROCESS NUMBER ---------- */
+
+.process-icon {
+  width: 55px;
+  height: 55px;
+
+  flex-shrink: 0;
+
+  margin-bottom: 22px;
+
+  border-radius: 16px;
+
+  background: #eeedff;
+  color: var(--primary);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+
+/* ---------- CARD TITLE ---------- */
+
+.process-item h3 {
+  margin: 0 0 12px;
+
+  color: var(--dark);
+
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+
+/* ---------- CARD DESCRIPTION ---------- */
+
+.process-item p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+
+/* =========================================
+   ML PIPELINE / ABOUT SECTION
+   ========================================= */
+
+.about-section {
+  padding: 110px 7%;
+
+  background: #f7f9fc;
+}
+
+
+/* ---------- SECTION HEADING ---------- */
+
+.section-heading {
+  margin-bottom: 60px;
+}
+
+.section-heading.center {
+  text-align: center;
+}
+
+.section-heading .section-tag {
+  margin-bottom: 15px;
+}
+
+.section-heading h2 {
+  margin: 0;
+
+  color: var(--dark);
+
+  font-size: clamp(38px, 4vw, 55px);
+
+  line-height: 1.1;
+
+  font-weight: 800;
+}
+
+.section-heading h2 span {
+  color: var(--primary);
+}
+
+
+/* =========================================
+   ML PIPELINE CARDS
+   ========================================= */
+
+.about-section .process-grid {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+
+/* =========================================
+   RESPONSIVE - TABLET
+   ========================================= */
+
+@media (max-width: 1000px) {
+
+  .page-hero {
+    padding: 85px 6% 75px;
+  }
+
+  .process-section {
+    padding: 85px 6%;
+  }
+
+  .about-section {
+    padding: 90px 6%;
+  }
+
+  .process-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .process-item {
+    min-height: 220px;
+  }
+}
+
+
+/* =========================================
+   RESPONSIVE - MOBILE
+   ========================================= */
+
+@media (max-width: 650px) {
+
+  .page-hero {
+    padding: 65px 20px 60px;
+  }
+
+  .page-hero h1 {
+    font-size: 42px;
+    letter-spacing: -1px;
+  }
+
+  .page-hero p {
+    font-size: 16px;
+  }
+
+  .process-section {
+    padding: 70px 20px;
+  }
+
+  .about-section {
+    padding: 75px 20px;
+  }
+
+  .process-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .process-item {
+    min-height: auto;
+    padding: 28px;
+  }
+
+  .section-heading {
+    margin-bottom: 40px;
+  }
+
+  .section-heading h2 {
+    font-size: 38px;
+  }
+}
