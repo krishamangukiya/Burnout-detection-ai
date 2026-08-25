@@ -418,7 +418,7 @@ const Recommendations = () => {
 
         <button
           className="primary-btn"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/Home")}
         >
           Go to Dashboard
           <span>→</span>

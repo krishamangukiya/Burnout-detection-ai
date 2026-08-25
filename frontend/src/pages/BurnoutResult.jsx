@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./BurnoutResult.css";
@@ -696,3 +697,4 @@ const BurnoutResult = () => {
 };
 
 export default BurnoutResult;
+

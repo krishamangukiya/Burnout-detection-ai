@@ -1,48 +1,60 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
-import About from "./pages/About";
-import HowItWorks from "./pages/HowitWorks";
 import CheckBurnout from "./pages/CheckBurnout";
 import Result from "./pages/BurnoutResult";
 import Recommendations from "./pages/Recommendations";
+import HowItWorks from "./pages/HowItWorks";
+import About from "./pages/About";
 
 import "./App.css";
 
+
+
 function App() {
   return (
-  
-      <Routes>
+    <Routes>
 
-        <Route path="/" element={<Home />} />
+       {/* localhost:5173 */}
+       <Route path="/" element={<Home />} />
 
-        <Route
-          path="/about"
-          element={<About />}
-        />
+       {/* Home */}
+      <Route
+        path="/Home"
+        element={<Home />}
+      />
 
-        <Route
-          path="/how-it-works"
-          element={<HowitWorks />}
-        />
+      {/* Check Burnout */}
+      <Route
+        path="/check-burnout"
+        element={<CheckBurnout />}
+      />
 
-        <Route
-          path="/check-burnout"
-          element={<CheckBurnout />}
-        />
+      {/* Burnout Result */}
+      <Route
+        path="/result"
+        element={<Result />}
+      />
 
-        <Route
-          path="/result"
-          element={<Result />}
-        />
+      {/* Recommendations */}
+      <Route
+        path="/recommendations"
+        element={<Recommendations />}
+      />
 
-        <Route
-          path="/recommendations"
-          element={<Recommendations />}
-        />
+      {/* How It Works */}
+      <Route
+        path="/howitworks"
+        element={<HowItWorks />}
+      />
 
-      </Routes>
-
+      {/* About */}
+      <Route
+        path="/about"
+        element={<About />}
+      />
+    </Routes>
   );
 }
 
