@@ -298,17 +298,18 @@ function CheckBurnout() {
     This is a project-level proxy score, NOT a clinical diagnosis.
   */
 
-  const calculateAnxietyScore = () => {
-    const values = [
-      Number(formData.anxiety_restless || 0),
-      Number(formData.anxiety_worry || 0),
-      Number(formData.anxiety_concentration || 0),
-    ];
-
-    const total = values.reduce((sum, value) => sum + value, 0);
-
-    return Number(((total / 12) * 10).toFixed(1));
-  };
+    const calculateAnxietyScore = () => {
+      const values = [
+        Number(formData.anxiety_restless || 0),
+        Number(formData.anxiety_worry || 0),
+        Number(formData.anxiety_concentration || 0),
+      ];
+    
+      const total = values.reduce((sum, value) => sum + value, 0);
+    
+      return Number(((total / 12) * 10).toFixed(1));
+    };
+    
 
   // =========================================================
   // DEPRESSION SCORE
@@ -321,17 +322,17 @@ function CheckBurnout() {
     This is NOT a clinical depression assessment.
   */
 
-  const calculateDepressionScore = () => {
-    const values = [
-      Number(formData.depression_interest || 0),
-      Number(formData.depression_energy || 0),
-      Number(formData.depression_sleep || 0),
-    ];
-
-    const total = values.reduce((sum, value) => sum + value, 0);
-
-    return Number(((total / 12) * 10).toFixed(1));
-  };
+    const calculateDepressionScore = () => {
+      const values = [
+        Number(formData.depression_interest || 0),
+        Number(formData.depression_energy || 0),
+        Number(formData.depression_sleep || 0),
+      ];
+    
+      const total = values.reduce((sum, value) => sum + value, 0);
+    
+      return Number(((total / 12) * 10).toFixed(1));
+    };
 
   // =========================================================
   // FINAL DATA PREPARATION
@@ -340,65 +341,59 @@ function CheckBurnout() {
   const prepareAssessmentData = () => {
     const anxietyScore = calculateAnxietyScore();
     const depressionScore = calculateDepressionScore();
-
+  
     return {
-      // Profile
       age: Number(formData.age),
+  
       gender: formData.gender,
+  
       job_role: formData.job_role,
+  
       experience_years: Number(formData.experience_years),
+  
       company_size: formData.company_size,
+  
       work_mode: formData.work_mode,
-
-      // Workload
+  
       work_hours_per_week: Number(formData.work_hours_per_week),
+  
       overtime_hours: Number(formData.overtime_hours),
+  
       meetings_per_day: Number(formData.meetings_per_day),
+  
       deadlines_missed: Number(formData.deadlines_missed),
+  
       job_satisfaction: Number(formData.job_satisfaction),
+  
       manager_support: Number(formData.manager_support),
+  
       work_life_balance: Number(formData.work_life_balance),
-
-      // Lifestyle
+  
       sleep_hours: Number(formData.sleep_hours),
-      physical_activity_days: Number(
-        formData.physical_activity_days
-      ),
+  
+      physical_activity_days: Number(formData.physical_activity_days),
+  
       screen_time_hours: Number(formData.screen_time_hours),
+  
       caffeine_intake: Number(formData.caffeine_intake),
-      social_support_score: Number(
-        formData.social_support_score
-      ),
-
-      // Well-being
-      has_therapy: formData.has_therapy,
+  
+      social_support_score: Number(formData.social_support_score),
+  
+      // Convert Yes/No into the format expected by the ML model
+      has_therapy:
+        formData.has_therapy === "Yes" ? 1 : 0,
+  
       stress_level: Number(formData.stress_level),
-
-      // Automatically calculated
+  
       anxiety_score: anxietyScore,
+  
       depression_score: depressionScore,
-
+  
+      // Convert Yes/Maybe/No into the format expected by the ML model
       seeks_professional_help:
-        formData.seeks_professional_help,
-
-      // Keep individual responses too.
-      // These can be useful later for explanations.
-      anxiety_responses: {
-        restless: Number(formData.anxiety_restless),
-        worry: Number(formData.anxiety_worry),
-        concentration: Number(
-          formData.anxiety_concentration
-        ),
-      },
-
-      depression_responses: {
-        interest: Number(formData.depression_interest),
-        energy: Number(formData.depression_energy),
-        sleep: Number(formData.depression_sleep),
-      },
+        formData.seeks_professional_help === "Yes" ? 1 : 0,
     };
   };
-
   // =========================================================
   // NEXT
   // =========================================================
@@ -438,34 +433,52 @@ function CheckBurnout() {
   // SUBMIT
   // =========================================================
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateStep()) {
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
-
       return;
     }
-
+  
     const assessmentData = prepareAssessmentData();
-
-    console.log("Final Burnout Assessment:", assessmentData);
-
-    /*
-      Result page can access the data using:
-
-      const location = useLocation();
-      const assessmentData = location.state?.assessmentData;
-    */
-
-    navigate("/result", {
-      state: {
-        assessmentData,
-      },
-    });
+  
+    console.log("Sending data to backend:", assessmentData);
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(assessmentData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Prediction request failed.");
+      }
+  
+      const predictionResult = await response.json();
+  
+      console.log("Prediction received:", predictionResult);
+  
+      navigate("/result", {
+        state: {
+          assessmentData,
+          predictionResult,
+        },
+      });
+  
+    } catch (error) {
+      console.error("Prediction error:", error);
+  
+      alert(
+        "Unable to connect to the prediction server. Please make sure the FastAPI backend is running."
+      );
+    }
   };
 
   // =========================================================
@@ -1964,5 +1977,6 @@ function CheckBurnout() {
     </div>
   );
 }
+
 
 export default CheckBurnout;

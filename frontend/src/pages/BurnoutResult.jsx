@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./BurnoutResult.css";
 
@@ -13,115 +12,142 @@ const BurnoutResult = () => {
 
   const assessmentData = location.state?.assessmentData;
 
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+
   console.log("Assessment data received:", assessmentData);
+  console.log("Assessment data JSON:", JSON.stringify(assessmentData, null, 2));
+
+  useEffect(() => {
+    const getPrediction = async () => {
+      if (!assessmentData) {
+        setLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://127.0.0.1:8000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(assessmentData),
+        });
+  
+        if (!response.ok) {
+          throw new Error("Prediction request failed");
+        }
+  
+        const data = await response.json();
+  
+        console.log("FastAPI prediction response:", data);
+  
+        setResult(data);
+      } catch (err) {
+        console.error("Prediction error:", err);
+        setError("Unable to connect to the burnout prediction server.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    getPrediction();
+  }, [assessmentData]);
 
   // =========================================================
   // SAFETY CHECK
   // =========================================================
 
   if (!assessmentData) {
-    return (
-      <div className="result-page result-empty">
-        <div className="result-empty-card">
-          <div className="result-empty-icon">!</div>
-
-          <span className="result-eyebrow">
-            BURNOUT ASSESSMENT
-          </span>
-
-          <h1>No Assessment Found</h1>
-
-          <p>
-            Please complete the burnout assessment first to view your
-            personalized result.
-          </p>
-
-          <button
-            className="primary-btn"
-            onClick={() => navigate("/check-burnout")}
-          >
-            Start Assessment
-            <span>→</span>
-          </button>
+    if (loading) {
+      return (
+        <div className="result-page result-empty">
+          <div className="result-empty-card">
+            <div className="result-empty-icon">⟳</div>
+    
+            <span className="result-eyebrow">
+              AI BURNOUT ASSESSMENT
+            </span>
+    
+            <h1>Analyzing Your Assessment</h1>
+    
+            <p>
+              Our AI model is analyzing your work patterns and generating
+              your burnout risk assessment.
+            </p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="result-page result-empty">
+          <div className="result-empty-card">
+            <div className="result-empty-icon">!</div>
+    
+            <span className="result-eyebrow">
+              AI BURNOUT ASSESSMENT
+            </span>
+    
+            <h1>Prediction Failed</h1>
+    
+            <p>{error}</p>
+    
+            <button
+              className="primary-btn"
+              onClick={() => navigate("/check-burnout")}
+            >
+              Try Again
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      );
+    }
   }
-
+    
   // =========================================================
   // TEMPORARY AI RESULT
   // =========================================================
   // Later these values will come from your FastAPI + ML model.
 
-  const result = {
-    score: 68,
-    level: "Moderate",
-    description:
-      "Your assessment indicates a moderate level of burnout risk based on your work patterns, lifestyle, and behavioral factors.",
-  };
+  // const result = {
+  //   score: 68,
+  //   level: "Moderate",
+  //   description:
+  //     "Your assessment indicates a moderate level of burnout risk based on your work patterns, lifestyle, and behavioral factors.",
+  // };
 
   // =========================================================
   // TEMPORARY XAI / SHAP FACTORS
   // =========================================================
   // Later these will come directly from SHAP values.
 
-  const factors = [
-    {
-      name: "Screen Time",
-      value: assessmentData.screen_time_hours
-        ? `${assessmentData.screen_time_hours} hrs/day`
-        : "High",
-      impact: "Increases risk",
-      type: "negative",
-      width: "82%",
-      shap: "+0.34",
-    },
-
-    {
-      name: "Work Hours",
-      value: assessmentData.work_hours_per_week
-        ? `${assessmentData.work_hours_per_week} hrs/week`
-        : "Long",
-      impact: "Increases risk",
-      type: "negative",
-      width: "74%",
-      shap: "+0.27",
-    },
-
-    {
-      name: "Overtime Hours",
-      value: assessmentData.overtime_hours
-        ? `${assessmentData.overtime_hours} hrs`
-        : "Moderate",
-      impact: "Increases risk",
-      type: "warning",
-      width: "56%",
-      shap: "+0.18",
-    },
-
-    {
-      name: "Sleep Hours",
-      value: assessmentData.sleep_hours
-        ? `${assessmentData.sleep_hours} hrs/night`
-        : "Good",
-      impact: "Reduces risk",
-      type: "positive",
-      width: "68%",
-      shap: "-0.21",
-    },
-
-    {
-      name: "Job Satisfaction",
-      value: assessmentData.job_satisfaction
-        ? `${assessmentData.job_satisfaction}/5`
-        : "Good",
-      impact: "Reduces risk",
-      type: "positive",
-      width: "61%",
-      shap: "-0.15",
-    },
-  ];
-
+  const factors = result.explanation.slice(0, 5).map((item) => {
+    const impact = Number(item.impact);
+  
+    return {
+      name: item.feature,
+      value: `${impact > 0 ? "+" : ""}${impact.toFixed(2)}`,
+      impact:
+        item.direction === "increases"
+          ? "Increases risk"
+          : item.direction === "decreases"
+          ? "Reduces risk"
+          : "Neutral",
+      type:
+        item.direction === "increases"
+          ? "negative"
+          : item.direction === "decreases"
+          ? "positive"
+          : "warning",
+      shap: `${impact > 0 ? "+" : ""}${impact.toFixed(2)}`,
+      width: `${Math.min(Math.abs(impact) * 200, 100)}%`,
+    };
+  });
   // =========================================================
   // INTERPRETATION
   // =========================================================
@@ -195,7 +221,8 @@ const BurnoutResult = () => {
               </span>
 
               <h2>
-                {result.score}%
+                {result.burnout_score.toFixed(2)}
+                <small>/10</small>
               </h2>
 
             </div>
@@ -212,7 +239,7 @@ const BurnoutResult = () => {
             <div
               className="score-progress-fill"
               style={{
-                width: `${result.score}%`,
+                width: `${Math.min(result.burnout_score * 10, 100)}%`,
               }}
             ></div>
 
@@ -248,20 +275,21 @@ const BurnoutResult = () => {
 
             <div className="risk-title-row">
 
-              <h2>
-                {result.level}
-              </h2>
-
-              <span className="risk-badge">
-                Moderate Risk
-              </span>
+            <h2>
+              {result.burnout_level}
+            </h2>
+            <span className={`risk-badge ${result.burnout_level.toLowerCase()}`}>
+              {result.burnout_level} Risk
+            </span>
 
             </div>
 
             <p>
-              {result.description}
+              Your AI assessment indicates a{" "}
+              <strong>{result.burnout_level.toLowerCase()}</strong>{" "}
+              level of burnout risk based on your reported work patterns,
+              lifestyle, and behavioral factors.
             </p>
-
           </div>
 
         </div>
