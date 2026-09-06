@@ -7,156 +7,384 @@ const BurnoutResult = () => {
   const location = useLocation();
 
   // =========================================================
-  // GET ASSESSMENT DATA FROM CHECK BURNOUT PAGE
+  // GET ASSESSMENT DATA
   // =========================================================
 
   const assessmentData = location.state?.assessmentData;
+
+  // =========================================================
+  // STATE
+  // =========================================================
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // =========================================================
+  // DEBUG
+  // =========================================================
 
   console.log("Assessment data received:", assessmentData);
-  console.log("Assessment data JSON:", JSON.stringify(assessmentData, null, 2));
+
+  // =========================================================
+  // CALL FASTAPI
+  // =========================================================
 
   useEffect(() => {
     const getPrediction = async () => {
+      // No assessment data
       if (!assessmentData) {
         setLoading(false);
         return;
       }
-  
+
       try {
-        const response = await fetch("http://127.0.0.1:8000/predict", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(assessmentData),
-        });
-  
+        setLoading(true);
+        setError("");
+
+        console.log("Sending data to FastAPI:", assessmentData);
+
+        const response = await fetch(
+          "http://127.0.0.1:8000/predict",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(assessmentData),
+          }
+        );
+
+        console.log("FastAPI status:", response.status);
+
         if (!response.ok) {
-          throw new Error("Prediction request failed");
+          const errorText = await response.text();
+
+          console.error(
+            "FastAPI error response:",
+            errorText
+          );
+
+          throw new Error(
+            'Prediction failed. Server returned ${response.status}'
+          );
         }
-  
+
         const data = await response.json();
-  
-        console.log("FastAPI prediction response:", data);
-  
+
+        console.log(
+          "FastAPI prediction response:",
+          data
+        );
+
+        // Store API result
         setResult(data);
+
       } catch (err) {
-        console.error("Prediction error:", err);
-        setError("Unable to connect to the burnout prediction server.");
+        console.error(
+          "Prediction error:",
+          err
+        );
+
+        setError(
+          err.message ||
+            "Unable to connect to the prediction server."
+        );
       } finally {
         setLoading(false);
       }
     };
-  
+
     getPrediction();
   }, [assessmentData]);
+
+  // =========================================================
+  // NO ASSESSMENT DATA
+  // =========================================================
+
+  if (!assessmentData) {
+    return (
+      <div className="result-page result-empty">
+
+        <div className="result-empty-card">
+
+          <div className="result-empty-icon">
+            !
+          </div>
+
+          <span className="result-eyebrow">
+            BURNOUT ASSESSMENT
+          </span>
+
+          <h1>
+            No Assessment Found
+          </h1>
+
+          <p>
+            Please complete the burnout assessment first
+            to view your personalized result.
+          </p>
+
+          <button
+            className="primary-btn"
+            onClick={() =>
+              navigate("/check-burnout")
+            }
+          >
+            Start Assessment
+
+            <span>
+              →
+            </span>
+
+          </button>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (loading) {
+    return (
+      <div className="result-page result-empty">
+
+        <div className="result-empty-card">
+
+          <div className="result-empty-icon">
+            ⟳
+          </div>
+
+          <span className="result-eyebrow">
+            AI BURNOUT ASSESSMENT
+          </span>
+
+          <h1>
+            Analyzing Your Assessment
+          </h1>
+
+          <p>
+            Our AI model is analyzing your work patterns,
+            lifestyle factors, and behavioral information.
+          </p>
+
+          <p>
+            Please wait while we generate your burnout result.
+          </p>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  // =========================================================
+  // API ERROR
+  // =========================================================
+
+  if (error) {
+    return (
+      <div className="result-page result-empty">
+
+        <div className="result-empty-card">
+
+          <div className="result-empty-icon">
+            !
+          </div>
+
+          <span className="result-eyebrow">
+            AI BURNOUT ASSESSMENT
+          </span>
+
+          <h1>
+            Prediction Failed
+          </h1>
+
+          <p>
+            {error}
+          </p>
+
+          <p>
+            Please make sure your FastAPI server is running
+            and try the assessment again.
+          </p>
+
+          <button
+            className="primary-btn"
+            onClick={() =>
+              navigate("/check-burnout")
+            }
+          >
+            Try Again
+
+            <span>
+              →
+            </span>
+
+          </button>
+
+        </div>
+
+      </div>
+    );
+  }
 
   // =========================================================
   // SAFETY CHECK
   // =========================================================
 
-  if (!assessmentData) {
-    if (loading) {
-      return (
-        <div className="result-page result-empty">
-          <div className="result-empty-card">
-            <div className="result-empty-icon">⟳</div>
-    
-            <span className="result-eyebrow">
-              AI BURNOUT ASSESSMENT
-            </span>
-    
-            <h1>Analyzing Your Assessment</h1>
-    
-            <p>
-              Our AI model is analyzing your work patterns and generating
-              your burnout risk assessment.
-            </p>
+  if (!result) {
+    return (
+      <div className="result-page result-empty">
+
+        <div className="result-empty-card">
+
+          <div className="result-empty-icon">
+            !
           </div>
-        </div>
-      );
-    }
-    
-    if (error) {
-      return (
-        <div className="result-page result-empty">
-          <div className="result-empty-card">
-            <div className="result-empty-icon">!</div>
-    
-            <span className="result-eyebrow">
-              AI BURNOUT ASSESSMENT
+
+          <span className="result-eyebrow">
+            AI BURNOUT ASSESSMENT
+          </span>
+
+          <h1>
+            No Prediction Available
+          </h1>
+
+          <p>
+            The AI model did not return a prediction.
+            Please try the assessment again.
+          </p>
+
+          <button
+            className="primary-btn"
+            onClick={() =>
+              navigate("/check-burnout")
+            }
+          >
+            Retake Assessment
+
+            <span>
+              →
             </span>
-    
-            <h1>Prediction Failed</h1>
-    
-            <p>{error}</p>
-    
-            <button
-              className="primary-btn"
-              onClick={() => navigate("/check-burnout")}
-            >
-              Try Again
-              <span>→</span>
-            </button>
-          </div>
+
+          </button>
+
         </div>
-      );
-    }
+
+      </div>
+    );
   }
-    
-  // =========================================================
-  // TEMPORARY AI RESULT
-  // =========================================================
-  // Later these values will come from your FastAPI + ML model.
-
-  // const result = {
-  //   score: 68,
-  //   level: "Moderate",
-  //   description:
-  //     "Your assessment indicates a moderate level of burnout risk based on your work patterns, lifestyle, and behavioral factors.",
-  // };
 
   // =========================================================
-  // TEMPORARY XAI / SHAP FACTORS
+  // GET SCORE
   // =========================================================
-  // Later these will come directly from SHAP values.
 
-  const factors = result.explanation.slice(0, 5).map((item) => {
-    const impact = Number(item.impact);
-  
-    return {
-      name: item.feature,
-      value: `${impact > 0 ? "+" : ""}${impact.toFixed(2)}`,
-      impact:
-        item.direction === "increases"
-          ? "Increases risk"
-          : item.direction === "decreases"
-          ? "Reduces risk"
-          : "Neutral",
-      type:
-        item.direction === "increases"
-          ? "negative"
-          : item.direction === "decreases"
-          ? "positive"
-          : "warning",
-      shap: `${impact > 0 ? "+" : ""}${impact.toFixed(2)}`,
-      width: `${Math.min(Math.abs(impact) * 200, 100)}%`,
-    };
-  });
+  const burnoutScore = Number(
+    result.burnout_score
+  );
+
+  const burnoutLevel =
+    result.burnout_level || "Unknown";
+
+  // Convert 0-10 score into percentage
+  const scorePercentage = Math.min(
+    Math.max(burnoutScore * 10, 0),
+    100
+  );
+
+  // =========================================================
+  // SHAP FACTORS
+  // =========================================================
+
+  const shapExplanation =
+    Array.isArray(result.explanation)
+      ? result.explanation
+      : [];
+
+  // Display strongest 5 factors
+  const factors = shapExplanation
+    .slice(0, 5)
+    .map((item) => {
+
+      const impact = Number(
+        item.impact || 0
+      );
+
+      let type = "warning";
+      let impactText = "Neutral";
+
+      if (item.direction === "increases") {
+        type = "negative";
+        impactText = "Increases risk";
+      }
+
+      if (item.direction === "decreases") {
+        type = "positive";
+        impactText = "Reduces risk";
+      }
+
+      return {
+        name: formatFeatureName(
+          item.feature
+        ),
+
+        value:
+          impact > 0
+            ? `+${impact.toFixed(2)}`
+            : impact.toFixed(2),
+
+        impact: impactText,
+
+        type,
+
+        shap:
+          impact > 0
+            ? `+${impact.toFixed(2)}`
+            : impact.toFixed(2),
+
+        numericImpact: impact,
+
+        width: `${Math.min(
+          Math.abs(impact) * 200,
+          100
+        )}%`,
+      };
+    });
+
   // =========================================================
   // INTERPRETATION
   // =========================================================
 
-  const interpretation =
-    "Your current work pattern shows signs of increased strain. Higher screen time, longer working hours, and overtime are contributing to your burnout risk. Your sleep and job satisfaction are helping reduce some of the overall risk.";
+  let interpretation = "";
+
+  if (burnoutLevel === "Low") {
+
+    interpretation =
+      "Your current work pattern shows relatively low signs of burnout risk. Continue maintaining healthy work habits, sufficient rest, and a balanced routine.";
+
+  } else if (burnoutLevel === "Moderate") {
+
+    interpretation =
+      "Your current work pattern shows signs of increased strain. Some of the factors identified by the AI model are contributing to your burnout risk. Consider improving your work-life balance and taking regular breaks.";
+
+  } else if (burnoutLevel === "High") {
+
+    interpretation =
+      "Your current work pattern shows significant signs of burnout risk. The factors identified by the AI model suggest that changes to workload, rest, and work habits may be important.";
+
+  } else {
+
+    interpretation =
+      "The AI model has analyzed your assessment and identified several factors contributing to your current burnout score.";
+  }
 
   // =========================================================
-  // RENDER
+  // RENDER RESULT PAGE
   // =========================================================
 
   return (
@@ -171,8 +399,11 @@ const BurnoutResult = () => {
         <div className="result-header-content">
 
           <span className="result-eyebrow">
+
             <span className="eyebrow-dot"></span>
+
             AI BURNOUT ASSESSMENT
+
           </span>
 
           <h1>
@@ -180,8 +411,8 @@ const BurnoutResult = () => {
           </h1>
 
           <p>
-            Your assessment has been analyzed using our AI-powered
-            burnout detection system.
+            Your assessment has been analyzed using our
+            AI-powered burnout detection system.
           </p>
 
         </div>
@@ -193,8 +424,15 @@ const BurnoutResult = () => {
           </div>
 
           <div>
-            <small>Assessment completed</small>
-            <strong>Today</strong>
+
+            <small>
+              Assessment completed
+            </small>
+
+            <strong>
+              Today
+            </strong>
+
           </div>
 
         </div>
@@ -221,8 +459,13 @@ const BurnoutResult = () => {
               </span>
 
               <h2>
-                {result.burnout_score.toFixed(2)}
-                <small>/10</small>
+
+                {burnoutScore.toFixed(2)}
+
+                <small>
+                  /10
+                </small>
+
               </h2>
 
             </div>
@@ -239,7 +482,7 @@ const BurnoutResult = () => {
             <div
               className="score-progress-fill"
               style={{
-                width: `${Math.min(result.burnout_score * 10, 100)}%`,
+                width: `${scorePercentage}%`,
               }}
             ></div>
 
@@ -248,11 +491,17 @@ const BurnoutResult = () => {
 
           <div className="score-scale">
 
-            <span>Low</span>
+            <span>
+              Low
+            </span>
 
-            <span>Moderate</span>
+            <span>
+              Moderate
+            </span>
 
-            <span>High</span>
+            <span>
+              High
+            </span>
 
           </div>
 
@@ -275,21 +524,32 @@ const BurnoutResult = () => {
 
             <div className="risk-title-row">
 
-            <h2>
-              {result.burnout_level}
-            </h2>
-            <span className={`risk-badge ${result.burnout_level.toLowerCase()}`}>
-              {result.burnout_level} Risk
-            </span>
+              <h2>
+                {burnoutLevel}
+              </h2>
+
+              <span
+                className={`risk-badge ${burnoutLevel.toLowerCase()}`}
+              >
+                {burnoutLevel} Risk
+              </span>
 
             </div>
 
             <p>
+
               Your AI assessment indicates a{" "}
-              <strong>{result.burnout_level.toLowerCase()}</strong>{" "}
-              level of burnout risk based on your reported work patterns,
-              lifestyle, and behavioral factors.
+
+              <strong>
+                {burnoutLevel.toLowerCase()}
+              </strong>{" "}
+
+              level of burnout risk based on your
+              reported work patterns, lifestyle,
+              and behavioral factors.
+
             </p>
+
           </div>
 
         </div>
@@ -299,7 +559,6 @@ const BurnoutResult = () => {
 
       {/* =====================================================
           AI EXPLANATION
-          AUTOMATICALLY SHOWN
       ====================================================== */}
 
       <section className="explanation-section">
@@ -321,8 +580,8 @@ const BurnoutResult = () => {
             </h2>
 
             <p>
-              The following factors had the strongest influence
-              on your burnout prediction.
+              The following factors had the strongest
+              influence on your burnout prediction.
             </p>
 
           </div>
@@ -330,9 +589,7 @@ const BurnoutResult = () => {
         </div>
 
 
-        {/* =================================================
-            FACTORS CARD
-        ================================================== */}
+        {/* FACTORS CARD */}
 
         <div className="explanation-card">
 
@@ -345,8 +602,8 @@ const BurnoutResult = () => {
               </h3>
 
               <p>
-                Factors are ranked according to their influence
-                on your predicted burnout risk.
+                Factors are ranked according to their
+                influence on your predicted burnout risk.
               </p>
 
             </div>
@@ -362,72 +619,92 @@ const BurnoutResult = () => {
 
           <div className="factors-list">
 
-            {factors.map((factor, index) => (
+            {factors.length > 0 ? (
 
-              <div
-                className="factor-row"
-                key={factor.name}
-              >
+              factors.map(
+                (factor, index) => (
 
-                {/* NUMBER */}
+                  <div
+                    className="factor-row"
+                    key={`${factor.name}-${index}`}
+                  >
 
-                <div className="factor-number">
-                  {index + 1}
-                </div>
+                    {/* NUMBER */}
 
-
-                {/* INFORMATION */}
-
-                <div className="factor-info">
-
-                  <div className="factor-title">
-
-                    <strong>
-                      {factor.name}
-                    </strong>
-
-                    <span
-                      className={`factor-status ${factor.type}`}
-                    >
-                      {factor.value}
-                    </span>
-
-                  </div>
+                    <div className="factor-number">
+                      {index + 1}
+                    </div>
 
 
-                  <div className="factor-bar-container">
+                    {/* INFORMATION */}
+
+                    <div className="factor-info">
+
+                      <div className="factor-title">
+
+                        <strong>
+                          {factor.name}
+                        </strong>
+
+                        <span
+                          className={`factor-status ${factor.type}`}
+                        >
+                          {factor.value}
+                        </span>
+
+                      </div>
+
+
+                      <div className="factor-bar-container">
+
+                        <div
+                          className={`factor-bar ${factor.type}`}
+                          style={{
+                            width:
+                              factor.width,
+                          }}
+                        ></div>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* IMPACT */}
 
                     <div
-                      className={`factor-bar ${factor.type}`}
-                      style={{
-                        width: factor.width,
-                      }}
-                    ></div>
+                      className={`factor-impact ${factor.type}`}
+                    >
+
+                      <span>
+
+                        {factor.type ===
+                        "positive"
+                          ? "↓"
+                          : factor.type ===
+                            "negative"
+                          ? "↑"
+                          : "•"}
+
+                      </span>
+
+                      {factor.impact}
+
+                    </div>
 
                   </div>
 
-                </div>
+                )
+              )
 
+            ) : (
 
-                {/* IMPACT */}
-
-                <div
-                  className={`factor-impact ${factor.type}`}
-                >
-
-                  <span>
-                    {factor.type === "positive"
-                      ? "↓"
-                      : "↑"}
-                  </span>
-
-                  {factor.impact}
-
-                </div>
-
+              <div className="no-factors">
+                No SHAP explanation was returned
+                by the model.
               </div>
 
-            ))}
+            )}
 
           </div>
 
@@ -493,8 +770,8 @@ const BurnoutResult = () => {
               </strong>
 
               <p>
-                SHAP explains how each input feature contributes
-                to the model's prediction.
+                SHAP explains how each input feature
+                contributes to the model's prediction.
               </p>
 
             </div>
@@ -527,72 +804,85 @@ const BurnoutResult = () => {
 
           <div className="shap-chart">
 
-            {factors.map((factor) => {
+            {factors.length > 0 ? (
 
-              const isPositive =
-                factor.shap.startsWith("+");
+              factors.map(
+                (factor, index) => {
 
-              return (
+                  const impact =
+                    factor.numericImpact;
 
-                <div
-                  className="chart-row"
-                  key={factor.name}
-                >
+                  const isPositive =
+                    impact > 0;
 
-                  <div className="chart-label">
-                    {factor.name}
-                  </div>
+                  const barWidth = Math.min(
+                    Math.abs(impact) * 100,
+                    45
+                  );
 
-                  <div className="chart-track">
+                  return (
 
-                    <div className="baseline"></div>
+                    <div
+                      className="chart-row"
+                      key={`chart-${factor.name}-${index}`}
+                    >
 
-                    {isPositive ? (
+                      <div className="chart-label">
 
-                      <div
-                        className="shap-value positive-risk"
-                        style={{
-                          width:
-                            factor.name === "Screen Time"
-                              ? "34%"
-                              : factor.name === "Work Hours"
-                              ? "27%"
-                              : "18%",
+                        {factor.name}
 
-                          marginLeft: "50%",
-                        }}
-                      >
-                        {factor.shap}
                       </div>
 
-                    ) : (
 
-                      <div
-                        className="shap-value reduced-risk"
-                        style={{
-                          width:
-                            factor.name === "Sleep Hours"
-                              ? "21%"
-                              : "15%",
+                      <div className="chart-track">
 
-                          marginLeft:
-                            factor.name === "Sleep Hours"
-                              ? "29%"
-                              : "35%",
-                        }}
-                      >
-                        {factor.shap}
+                        <div className="baseline"></div>
+
+                        {isPositive ? (
+
+                          <div
+                            className="shap-value positive-risk"
+                            style={{
+                              width: `${barWidth}%`,
+                              marginLeft: "50%",
+                            }}
+                          >
+
+                            {factor.shap}
+
+                          </div>
+
+                        ) : (
+
+                          <div
+                            className="shap-value reduced-risk"
+                            style={{
+                              width: `${barWidth}%`,
+                              marginLeft: `${50 - barWidth}%`,
+                            }}
+                          >
+
+                            {factor.shap}
+
+                          </div>
+
+                        )}
+
                       </div>
 
-                    )}
+                    </div>
 
-                  </div>
+                  );
+                }
+              )
 
-                </div>
+            ) : (
 
-              );
+              <div className="no-factors">
+                No SHAP data available.
+              </div>
 
-            })}
+            )}
 
           </div>
 
@@ -618,7 +908,7 @@ const BurnoutResult = () => {
           </span>
 
           <h2>
-            Your work pattern is showing signs of increased strain.
+            Your work pattern has been analyzed.
           </h2>
 
           <p>
@@ -632,7 +922,6 @@ const BurnoutResult = () => {
 
       {/* =====================================================
           PERSONALIZED RECOMMENDATION
-          OPTIONAL USER CHOICE
       ====================================================== */}
 
       <section className="recommendation-cta">
@@ -654,8 +943,9 @@ const BurnoutResult = () => {
             </h2>
 
             <p>
-              Get practical suggestions based on your burnout
-              score and the factors identified by the AI.
+              Get practical suggestions based on your
+              burnout score and the factors identified
+              by the AI.
             </p>
 
           </div>
@@ -666,13 +956,12 @@ const BurnoutResult = () => {
         <button
           className="recommendation-btn"
           onClick={() =>
-            navigate("/recommendations", {
-              state: {
-                assessmentData,
-                result,
-                factors,
-              },
-            })
+            navigate(
+              "/recommendations",
+              {
+                state: { assessmentData, result, factors }
+              }
+            )
           }
         >
 
@@ -699,7 +988,9 @@ const BurnoutResult = () => {
             navigate("/check-burnout")
           }
         >
+
           ← Retake Assessment
+
         </button>
 
 
@@ -724,5 +1015,26 @@ const BurnoutResult = () => {
   );
 };
 
-export default BurnoutResult;
 
+// =============================================================
+// HELPER FUNCTION
+// Convert feature names into readable names
+// =============================================================
+
+function formatFeatureName(feature) {
+
+  if (!feature) {
+    return "Unknown Factor";
+  }
+
+  return feature
+    .replace(/^num__/, "")
+    .replace(/^cat__/, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) =>
+      letter.toUpperCase()
+    );
+}
+
+
+export default BurnoutResult;
