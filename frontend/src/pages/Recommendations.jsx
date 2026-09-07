@@ -1,552 +1,879 @@
-
 import React, { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Brain,
-  Coffee,
-  Dumbbell,
-  Moon,
-  Monitor,
-  Sparkles,
-  Target,
-  Timer,
-  HeartPulse,
-  CheckCircle2,
-} from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "./Recommendations.css";
 
 const Recommendations = () => {
+  const navigate = useNavigate();
   const location = useLocation();
 
-  /*
-   * ---------------------------------------------------------
-   * GET PREDICTION DATA
-   * ---------------------------------------------------------
-   * The page first checks navigation state and then localStorage.
-   * This makes the page work whether the user comes here directly
-   * from the result page or refreshes the browser.
-   */
+  // Data received from BurnoutResult.jsx
+  const assessmentData = location.state?.assessmentData;
 
-  const predictionData = useMemo(() => {
-    const navigationData = location.state;
-
-    if (navigationData && typeof navigationData === "object") {
-      return navigationData;
-    }
-
-    try {
-      const storedData =
-        localStorage.getItem("burnoutResult") ||
-        localStorage.getItem("predictionResult") ||
-        localStorage.getItem("burnoutPrediction");
-
-      if (storedData) {
-        return JSON.parse(storedData);
-      }
-    } catch (error) {
-      console.error("Unable to read burnout prediction data:", error);
-    }
-
-    return {};
-  }, [location.state]);
+  const predictionResult =
+    location.state?.result ||
+    location.state?.predictionResult;
 
   /*
-   * ---------------------------------------------------------
-   * NORMALIZE BURNOUT LEVEL
-   * ---------------------------------------------------------
-   */
-
-  const burnoutLevel = useMemo(() => {
-    const level =
-      predictionData?.burnout_level ||
-      predictionData?.burnoutLevel ||
-      predictionData?.level ||
-      predictionData?.prediction ||
-      "Moderate";
-
-    return String(level).trim().toLowerCase();
-  }, [predictionData]);
-
-  const normalizedLevel =
-    burnoutLevel === "high"
-      ? "High"
-      : burnoutLevel === "low"
-      ? "Low"
-      : "Moderate";
-
-  /*
-   * ---------------------------------------------------------
-   * SCORE
-   * ---------------------------------------------------------
-   */
-
-  const burnoutScore = useMemo(() => {
-    const possibleScore =
-      predictionData?.burnout_score ??
-      predictionData?.burnoutScore ??
-      predictionData?.score ??
-      predictionData?.prediction_score;
-
-    const numericScore = Number(possibleScore);
-
-    if (!Number.isNaN(numericScore)) {
-      return Math.round(numericScore * 10) / 10;
-    }
-
-    return null;
-  }, [predictionData]);
-
-  /*
-   * ---------------------------------------------------------
-   * RECOMMENDATION DATA
-   * ---------------------------------------------------------
+   * =========================================================
+   * GENERATE PERSONALIZED RECOMMENDATIONS
+   * =========================================================
    */
 
   const recommendations = useMemo(() => {
-    const commonRecommendations = [
+    if (!assessmentData) {
+      return [];
+    }
+
+    const personalized = [];
+
+    const addRecommendation = (
+      condition,
+      recommendation
+    ) => {
+      if (condition) {
+        personalized.push({
+          ...recommendation,
+          personalized: true,
+        });
+      }
+    };
+
+    // ---------------------------------------------------------
+    // 1. SCREEN TIME
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.screen_time_hours) >= 8,
       {
-        icon: Timer,
-        title: "Take Regular Breaks",
+        category: "WORK & SCREEN TIME",
+        title: "Take regular screen breaks",
         description:
-          "Avoid working continuously for long periods. Take a short break every 45–60 minutes to refresh your mind and reduce mental fatigue.",
-        action: "Set a reminder to stand up, stretch, or walk for a few minutes.",
+          "Your daily screen exposure is relatively high and may contribute to digital fatigue and reduced recovery time.",
+        action:
+          "Try a 5–10 minute break after every 60–90 minutes of focused screen-based work.",
+        icon: "◷",
+        color: "purple",
+        priority: 1,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 2. WORKING HOURS
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.work_hours_per_week) >= 45,
+      {
+        category: "WORKLOAD",
+        title: "Manage extended working hours",
+        description:
+          "Your weekly working hours are above a balanced range and may reduce the amount of time available for recovery.",
+        action:
+          "Set a clear daily stopping time and avoid regularly extending your workday.",
+        icon: "⌚",
+        color: "blue",
+        priority: 2,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 3. OVERTIME
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.overtime_hours) >= 5,
+      {
+        category: "WORK-LIFE BALANCE",
+        title: "Reduce unnecessary overtime",
+        description:
+          "Frequent overtime can increase workload pressure and make it harder to maintain consistent recovery time.",
+        action:
+          "Reserve overtime for genuinely urgent tasks and protect your normal working hours whenever possible.",
+        icon: "↗",
+        color: "orange",
+        priority: 3,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 4. SLEEP
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.sleep_hours) < 7,
+      {
+        category: "RECOVERY & SLEEP",
+        title: "Protect your sleep routine",
+        description:
+          "Your reported sleep duration is below the recommended recovery range and may affect energy and concentration.",
+        action:
+          "Aim for a consistent sleep schedule and create a wind-down period before bedtime.",
+        icon: "☾",
+        color: "violet",
+        priority: 4,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 5. PHYSICAL ACTIVITY
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.physical_activity_days) < 3,
+      {
+        category: "PHYSICAL WELLNESS",
+        title: "Add more physical activity",
+        description:
+          "Your current activity frequency is relatively low, which may reduce opportunities to recover from prolonged sedentary work.",
+        action:
+          "Try adding short walks, stretching, or another enjoyable physical activity throughout the week.",
+        icon: "✦",
+        color: "green",
+        priority: 5,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 6. STRESS
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.stress_level) >= 4,
+      {
+        category: "STRESS MANAGEMENT",
+        title: "Create a stress-reset routine",
+        description:
+          "Your reported stress level suggests that regular recovery moments could be especially useful.",
+        action:
+          "Use short breathing exercises, quiet breaks, or a brief walk when you notice stress building up.",
+        icon: "♡",
+        color: "pink",
+        priority: 6,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 7. JOB SATISFACTION
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.job_satisfaction) <= 2,
+      {
+        category: "WORK SATISFACTION",
+        title: "Identify sources of work frustration",
+        description:
+          "Lower job satisfaction can make everyday workload pressure feel more difficult to manage.",
+        action:
+          "Identify one or two recurring sources of frustration and consider practical ways to improve them.",
+        icon: "◎",
+        color: "blue",
+        priority: 7,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 8. MANAGER SUPPORT
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.manager_support) <= 2,
+      {
+        category: "WORKPLACE SUPPORT",
+        title: "Strengthen workplace communication",
+        description:
+          "Limited perceived manager support may make workload and deadline pressure harder to manage.",
+        action:
+          "Discuss workload expectations, priorities, or support needs with your manager when appropriate.",
+        icon: "→",
+        color: "purple",
+        priority: 8,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 9. WORK-LIFE BALANCE
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.work_life_balance) <= 2,
+      {
+        category: "WORK-LIFE BALANCE",
+        title: "Create clearer boundaries",
+        description:
+          "Your reported work-life balance suggests that work may be taking up too much of your personal recovery time.",
+        action:
+          "Set boundaries around work notifications and protect time for personal activities after work.",
+        icon: "◇",
+        color: "green",
+        priority: 9,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 10. MISSED DEADLINES
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.deadlines_missed) >= 3,
+      {
+        category: "TASK MANAGEMENT",
+        title: "Break large tasks into smaller steps",
+        description:
+          "Missed deadlines may indicate that workload or task planning needs additional structure.",
+        action:
+          "Divide larger tasks into smaller milestones and set realistic deadlines for each step.",
+        icon: "✓",
+        color: "orange",
+        priority: 10,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 11. CAFFEINE
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.caffeine_intake) >= 4,
+      {
+        category: "DAILY HABITS",
+        title: "Monitor caffeine intake",
+        description:
+          "Higher caffeine consumption may become part of a cycle of fatigue and reduced recovery if used to compensate for insufficient rest.",
+        action:
+          "Pay attention to when you consume caffeine and avoid relying on it as a replacement for adequate rest.",
+        icon: "○",
+        color: "pink",
+        priority: 11,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 12. SOCIAL SUPPORT
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.social_support_score) <= 2,
+      {
+        category: "SOCIAL WELLNESS",
+        title: "Stay connected with your support network",
+        description:
+          "A stronger social support system can provide opportunities to talk, relax, and step away from work-related pressure.",
+        action:
+          "Make regular time to connect with friends, family, colleagues, or other trusted people.",
+        icon: "♡",
+        color: "violet",
+        priority: 12,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 13. ANXIETY
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.anxiety_score) >= 6,
+      {
+        category: "EMOTIONAL WELLNESS",
+        title: "Use short anxiety-reset breaks",
+        description:
+          "Your assessment indicates that anxiety-related experiences may benefit from regular moments of pause and recovery.",
+        action:
+          "When you feel overwhelmed, pause for a few minutes and use slow breathing or another calming activity.",
+        icon: "○",
+        color: "purple",
+        priority: 13,
+      }
+    );
+
+    // ---------------------------------------------------------
+    // 14. DEPRESSION
+    // ---------------------------------------------------------
+
+    addRecommendation(
+      Number(assessmentData.depression_score) >= 6,
+      {
+        category: "EMOTIONAL WELLNESS",
+        title: "Prioritize recovery and meaningful activities",
+        description:
+          "Your responses suggest that maintaining regular routines and activities outside work may be particularly valuable.",
+        action:
+          "Keep a consistent daily routine and make time for activities that help you feel engaged and refreshed.",
+        icon: "✦",
+        color: "green",
+        priority: 14,
+      }
+    );
+
+    /*
+     * =========================================================
+     * GENERAL RECOMMENDATIONS
+     *
+     * These are used only when fewer than 6 personalized
+     * recommendations are generated.
+     * =========================================================
+     */
+
+    const generalRecommendations = [
+      {
+        category: "RECOVERY",
+        title: "Schedule regular recovery time",
+        description:
+          "Consistent recovery periods can help prevent work pressure from accumulating throughout the day.",
+        action:
+          "Add short breaks between demanding tasks and protect some uninterrupted personal time.",
+        icon: "◷",
+        color: "purple",
+        priority: 100,
       },
       {
-        icon: Monitor,
-        title: "Reduce Screen Fatigue",
+        category: "FOCUS & PRODUCTIVITY",
+        title: "Prioritize your most important tasks",
         description:
-          "Extended screen exposure can increase mental and physical fatigue. Give your eyes regular rest during your working day.",
+          "A clear task priority can reduce unnecessary mental load and make demanding work more manageable.",
         action:
-          "Follow the 20-20-20 rule: every 20 minutes, look at something about 20 feet away for 20 seconds.",
+          "Choose your top two or three priorities before starting your workday.",
+        icon: "✓",
+        color: "blue",
+        priority: 101,
       },
       {
-        icon: Moon,
-        title: "Prioritize Quality Sleep",
+        category: "WORK-LIFE BALANCE",
+        title: "Create a clear end to your workday",
         description:
-          "Consistent and sufficient sleep supports concentration, emotional regulation, memory, and recovery from daily workload.",
+          "A consistent transition away from work can help your mind shift into recovery mode.",
         action:
-          "Maintain a consistent sleep schedule and avoid unnecessary screen use before bedtime.",
+          "Finish your workday with a short review and avoid checking work unnecessarily afterward.",
+        icon: "→",
+        color: "green",
+        priority: 102,
       },
       {
-        icon: Dumbbell,
-        title: "Stay Physically Active",
+        category: "MINDFUL WORK",
+        title: "Use short focus sessions",
         description:
-          "Regular physical movement can help reduce tension and support overall energy levels during demanding work periods.",
+          "Working in manageable focus periods can make long digital work sessions feel less overwhelming.",
         action:
-          "Include walking, stretching, exercise, or another enjoyable physical activity in your routine.",
+          "Work in focused blocks and use the breaks between them to move away from the screen.",
+        icon: "◎",
+        color: "orange",
+        priority: 103,
       },
       {
-        icon: Coffee,
-        title: "Manage Caffeine Intake",
+        category: "PERSONAL WELLNESS",
+        title: "Make time for activities you enjoy",
         description:
-          "Caffeine can temporarily improve alertness, but excessive or late-day consumption may interfere with rest and recovery.",
+          "Personal activities outside work can create a healthier balance and provide opportunities for recovery.",
         action:
-          "Keep caffeine moderate and avoid relying on it as a replacement for adequate rest.",
+          "Schedule time for hobbies, social activities, or other things you genuinely enjoy.",
+        icon: "✦",
+        color: "pink",
+        priority: 104,
       },
       {
-        icon: Brain,
-        title: "Practice Mental Recovery",
+        category: "SELF-MONITORING",
+        title: "Monitor your energy levels",
         description:
-          "Give your mind time away from work-related tasks. Short periods of relaxation can help reduce cognitive overload.",
+          "Noticing changes in energy, focus, and motivation can help you respond before work pressure becomes overwhelming.",
         action:
-          "Try breathing exercises, mindfulness, music, journaling, or another relaxing activity.",
+          "Check in with yourself during the week and adjust your workload or recovery time when needed.",
+        icon: "◇",
+        color: "violet",
+        priority: 105,
       },
     ];
 
-    if (normalizedLevel === "High") {
-      return [
-        {
-          icon: HeartPulse,
-          title: "Prioritize Your Well-Being",
-          description:
-            "Your assessment indicates a high burnout risk. Consider reducing unnecessary workload and giving yourself more recovery time.",
-          action:
-            "Review your current workload and identify tasks that can be postponed, delegated, or simplified.",
-          priority: true,
-        },
-        {
-          icon: Timer,
-          title: "Increase Break Frequency",
-          description:
-            "Frequent short breaks can help prevent continuous mental overload when working for extended periods.",
-          action:
-            "Take short recovery breaks throughout the workday instead of waiting until you feel completely exhausted.",
-          priority: true,
-        },
-        {
-          icon: Moon,
-          title: "Protect Your Recovery Time",
-          description:
-            "Rest is an important part of maintaining sustainable productivity. Avoid continuously extending work into your personal recovery time.",
-          action:
-            "Create a clear stopping point for work and maintain a consistent sleep routine.",
-        },
-        {
-          icon: Brain,
-          title: "Use Stress-Management Techniques",
-          description:
-            "Mental recovery activities can help you transition away from work pressure and manage daily stress.",
-          action:
-            "Try breathing exercises, mindfulness, journaling, walking, or another calming activity.",
-        },
-        {
-          icon: Dumbbell,
-          title: "Add Light Physical Activity",
-          description:
-            "Movement can help break up long periods of sitting and provide a mental reset during demanding days.",
-          action:
-            "Add short walks or stretching sessions between longer work periods.",
-        },
-        {
-          icon: Target,
-          title: "Consider Professional Support",
-          description:
-            "If feelings of exhaustion, stress, or reduced functioning continue or interfere with daily life, consider speaking with a qualified mental-health professional.",
-          action:
-            "Reach out to a trusted professional or appropriate support service if you feel you need additional help.",
-          priority: true,
-        },
-      ];
+    /*
+     * Sort personalized recommendations by priority.
+     */
+
+    personalized.sort(
+      (a, b) => a.priority - b.priority
+    );
+
+    /*
+     * Fill remaining spaces with general recommendations.
+     */
+
+    const selected = [...personalized];
+
+    for (const recommendation of generalRecommendations) {
+      if (selected.length >= 6) {
+        break;
+      }
+
+      selected.push({
+        ...recommendation,
+        personalized: false,
+      });
     }
 
-    if (normalizedLevel === "Low") {
-      return [
-        {
-          icon: CheckCircle2,
-          title: "Maintain Your Current Routine",
-          description:
-            "Your assessment indicates a low burnout risk. Continue the habits that are helping you maintain a healthy work pattern.",
-          action:
-            "Keep a balanced routine and monitor changes in your energy, workload, and recovery.",
-        },
-        {
-          icon: Timer,
-          title: "Keep Taking Breaks",
-          description:
-            "Regular breaks are useful even when burnout risk is low because they help maintain sustainable productivity.",
-          action:
-            "Continue taking short breaks throughout your working day.",
-        },
-        {
-          icon: Moon,
-          title: "Maintain Healthy Sleep",
-          description:
-            "Consistent sleep is one of the foundations of physical and mental recovery.",
-          action:
-            "Keep a regular sleep schedule and make sufficient rest a priority.",
-        },
-        {
-          icon: Dumbbell,
-          title: "Stay Active",
-          description:
-            "Regular movement can support energy, concentration, and overall well-being.",
-          action:
-            "Continue incorporating physical activity into your daily routine.",
-        },
-        {
-          icon: Brain,
-          title: "Monitor Your Stress",
-          description:
-            "Burnout risk can change over time as workload, sleep, and personal circumstances change.",
-          action:
-            "Pay attention to persistent changes in mood, motivation, energy, or concentration.",
-        },
-        {
-          icon: Monitor,
-          title: "Maintain Healthy Screen Habits",
-          description:
-            "Balanced screen use can help reduce physical and mental fatigue during digital work.",
-          action:
-            "Take regular visual breaks and avoid unnecessary screen time when you are finished working.",
-        },
-      ];
-    }
+    /*
+     * Maximum 6 cards.
+     */
 
-    return commonRecommendations;
-  }, [normalizedLevel]);
+    return selected.slice(0, 6);
+  }, [assessmentData]);
 
   /*
-   * ---------------------------------------------------------
-   * LEVEL INFORMATION
-   * ---------------------------------------------------------
+   * =========================================================
+   * BURNOUT RESULT
+   * =========================================================
    */
 
-  const levelInfo = {
-    Low: {
-      label: "Low Burnout Risk",
-      description:
-        "Your current assessment indicates a relatively low level of burnout risk. Continue maintaining healthy work and recovery habits.",
-      className: "low",
-    },
-    Moderate: {
-      label: "Moderate Burnout Risk",
-      description:
-        "Your assessment indicates some signs of burnout risk. Small changes in workload, breaks, sleep, and recovery can help prevent the situation from becoming more serious.",
-      className: "moderate",
-    },
-    High: {
-      label: "High Burnout Risk",
-      description:
-        "Your assessment indicates a high level of burnout risk. Prioritize recovery, manage workload where possible, and consider additional support if these difficulties continue.",
-      className: "high",
-    },
-  };
+  const burnoutScore = Number(
+    predictionResult?.burnout_score ?? 0
+  );
 
-  const currentLevel = levelInfo[normalizedLevel];
+  const burnoutLevel =
+    predictionResult?.burnout_level || "Unknown";
 
   /*
-   * ---------------------------------------------------------
+   * Model score is 0–10.
+   * Convert to percentage for UI display.
+   */
+
+  const scorePercentage = Math.min(
+    Math.max(burnoutScore * 10, 0),
+    100
+  );
+
+  /*
+   * =========================================================
+   * STATUS DESCRIPTION
+   * =========================================================
+   */
+
+  const getStatusDescription = () => {
+    if (burnoutLevel === "High") {
+      return "Your assessment indicates a higher burnout risk. Focus on reducing workload pressure, improving recovery, and seeking appropriate support.";
+    }
+
+    if (burnoutLevel === "Moderate") {
+      return "Your assessment indicates a moderate burnout risk. Small, consistent changes to workload, recovery, and daily habits can help.";
+    }
+
+    if (burnoutLevel === "Low") {
+      return "Your current assessment indicates a lower burnout risk. Continue maintaining healthy work, recovery, and lifestyle habits.";
+    }
+
+    return "Your personalized recommendations are based on the information provided in your burnout assessment.";
+  };
+
+  /*
+   * =========================================================
+   * NO DATA HANDLING
+   * =========================================================
+   */
+
+  if (!assessmentData || !predictionResult) {
+    return (
+      <div className="recommendations-page">
+        <div className="recommendations-header">
+          <div className="recommendations-eyebrow">
+            <span className="recommendation-dot"></span>
+            PERSONALIZED PLAN
+          </div>
+
+          <h1>
+            Your recommendations
+          </h1>
+
+          <p>
+            We need your burnout assessment result before
+            generating personalized recommendations.
+          </p>
+
+          <div className="recommendation-actions">
+            <button
+              className="primary-btn"
+              onClick={() =>
+                navigate("/check-burnout")
+              }
+            >
+              Start Assessment <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * =========================================================
+   * DAILY PLAN
+   * =========================================================
+   */
+
+  const dailyPlan = [
+    {
+      time: "START",
+      title: "Plan your priorities",
+      description:
+        "Choose your most important tasks before beginning your workday.",
+    },
+    {
+      time: "60–90 MIN",
+      title: "Take a short screen break",
+      description:
+        "Step away from your screen, stretch, move around, or rest your eyes.",
+    },
+    {
+      time: "MIDDAY",
+      title: "Reset and recharge",
+      description:
+        "Take a proper break away from work and allow yourself time to recover.",
+    },
+    {
+      time: "AFTERNOON",
+      title: "Check your energy",
+      description:
+        "Notice your concentration and stress level before taking on more demanding tasks.",
+    },
+    {
+      time: "END",
+      title: "Close your workday",
+      description:
+        "Review unfinished work, set priorities for tomorrow, and disconnect from work.",
+    },
+    {
+      time: "EVENING",
+      title: "Protect recovery time",
+      description:
+        "Spend time on sleep, movement, hobbies, family, friends, or other relaxing activities.",
+    },
+  ];
+
+  /*
+   * =========================================================
    * RENDER
-   * ---------------------------------------------------------
+   * =========================================================
    */
 
   return (
-    <main className="recommendations-page">
-      <div className="recommendations-container">
+    <div className="recommendations-page">
 
-        {/* -------------------------------------------------
-            TOP NAVIGATION
-        ------------------------------------------------- */}
+      {/* =====================================================
+          HEADER
+          ===================================================== */}
 
-        <div className="recommendations-topbar">
-          <Link to="/result" className="recommendations-back">
-            <ArrowLeft size={18} />
-            <span>Back to Results</span>
-          </Link>
+      <header className="recommendations-header">
+
+        <div className="recommendations-eyebrow">
+          <span className="recommendation-dot"></span>
+          YOUR PERSONALIZED PLAN
         </div>
 
-        {/* -------------------------------------------------
-            HERO SECTION
-        ------------------------------------------------- */}
+        <h1>
+          Small changes can make a <span>difference.</span>
+        </h1>
 
-        <section className="recommendations-hero">
-          <div className="recommendations-hero-content">
+        <p>
+          These suggestions are prioritized according to
+          the information provided in your assessment.
+          Start with the areas that feel most practical
+          for you.
+        </p>
 
-            <div className="recommendations-eyebrow">
-              <Sparkles size={17} />
-              <span>Personalized Wellness Plan</span>
-            </div>
+        <div className="recommendation-note">
+          <span>✦</span>
 
-            <h1>
-              Recommendations for
-              <span> a Healthier Workday</span>
-            </h1>
-
-            <p>
-              Based on your burnout assessment, here are practical steps
-              designed to help you manage workload, improve recovery, and
-              maintain sustainable productivity.
-            </p>
-
-          </div>
-
-          <div className="recommendations-hero-icon">
-            <Brain size={54} strokeWidth={1.5} />
-          </div>
-        </section>
-
-        {/* -------------------------------------------------
-            RISK SUMMARY
-        ------------------------------------------------- */}
-
-        <section className={`recommendations-risk-card ${currentLevel.className}`}>
-
-          <div className="risk-card-left">
-            <div className="risk-icon">
-              <Target size={24} />
-            </div>
-
-            <div>
-              <span className="risk-label">Assessment Result</span>
-
-              <h2>{currentLevel.label}</h2>
-
-              <p>{currentLevel.description}</p>
-            </div>
-          </div>
-
-          {burnoutScore !== null && (
-            <div className="risk-score">
-              <span>Burnout Score</span>
-              <strong>{burnoutScore}</strong>
-            </div>
-          )}
-
-        </section>
-
-        {/* -------------------------------------------------
-            SECTION HEADING
-        ------------------------------------------------- */}
-
-        <section className="recommendations-section-heading">
           <div>
-            <span className="section-kicker">YOUR ACTION PLAN</span>
+            <strong>
+              AI-Powered Recommendations
+            </strong>
+
+            <small>
+              Your suggestions are generated using your
+              assessment responses and predicted burnout
+              level.
+            </small>
+          </div>
+        </div>
+
+      </header>
+
+
+      {/* =====================================================
+          STATUS
+          ===================================================== */}
+
+      <section className="recommendation-status">
+
+        <div className="status-card">
+
+          <div className="status-icon">
+            {burnoutLevel === "High"
+              ? "!"
+              : burnoutLevel === "Moderate"
+              ? "!"
+              : "✓"}
+          </div>
+
+          <div className="status-content">
+
+            <span className="status-label">
+              CURRENT BURNOUT STATUS
+            </span>
 
             <h2>
-              Simple changes that
-              <span> make a difference</span>
+              {burnoutLevel} Burnout Risk
             </h2>
 
             <p>
-              Start with the recommendations that feel most realistic for
-              your current routine. Consistency is more important than trying
-              to change everything at once.
+              {getStatusDescription()}
             </p>
+
           </div>
-        </section>
 
-        {/* -------------------------------------------------
-            RECOMMENDATION CARDS
-        ------------------------------------------------- */}
+          <div className="status-score">
 
-        <section className="recommendations-grid">
+            <strong>
+              {scorePercentage.toFixed(1)}%
+            </strong>
 
-          {recommendations.map((recommendation, index) => {
-            const Icon = recommendation.icon;
+            <span>
+              Burnout Score
+            </span>
 
-            return (
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================================
+          RECOMMENDATIONS
+          ===================================================== */}
+
+      <section className="recommendations-section">
+
+        <div className="section-heading">
+
+          <span className="section-label">
+            YOUR NEXT STEPS
+          </span>
+
+          <h2>
+            Recommendations for you
+          </h2>
+
+          <p>
+            Start with the recommendations that match
+            your current work and lifestyle patterns.
+            You do not need to change everything at once.
+          </p>
+
+        </div>
+
+
+        <div className="recommendations-grid">
+
+          {recommendations.map(
+            (recommendation, index) => (
               <article
-                className={`recommendation-card ${
-                  recommendation.priority ? "priority" : ""
-                }`}
+                className="recommendation-card"
                 key={`${recommendation.title}-${index}`}
               >
-                {recommendation.priority && (
-                  <span className="recommendation-priority">
-                    Priority
+
+                {/* CARD TOP */}
+
+                <div className="recommendation-card-top">
+
+                  <div
+                    className={`recommendation-icon ${recommendation.color}`}
+                  >
+                    {recommendation.icon}
+                  </div>
+
+                  <span className="recommendation-number">
+                    {String(index + 1).padStart(2, "0")}
                   </span>
-                )}
 
-                <div className="recommendation-card-icon">
-                  <Icon size={24} strokeWidth={1.8} />
                 </div>
 
-                <div className="recommendation-card-number">
-                  {String(index + 1).padStart(2, "0")}
-                </div>
 
-                <h3>{recommendation.title}</h3>
+                {/* CARD CONTENT */}
 
-                <p className="recommendation-description">
+                <span className="recommendation-category">
+                  {recommendation.category}
+                </span>
+
+                <h3>
+                  {recommendation.title}
+                </h3>
+
+                <p>
                   {recommendation.description}
                 </p>
 
+
+                {/* ACTION */}
+
                 <div className="recommendation-action">
-                  <span>Suggested action</span>
-                  <p>{recommendation.action}</p>
+
+                  <span className="action-icon">
+                    →
+                  </span>
+
+                  <div>
+                    <strong>
+                      Try this
+                    </strong>
+
+                    <span>
+                      {recommendation.action}
+                    </span>
+                  </div>
+
                 </div>
+
               </article>
-            );
-          })}
+            )
+          )}
 
-        </section>
+        </div>
 
-        {/* -------------------------------------------------
-            DAILY ROUTINE
-        ------------------------------------------------- */}
+      </section>
 
-        <section className="recommendations-routine">
 
-          <div className="routine-header">
-            <div className="routine-icon">
-              <Timer size={25} />
+      {/* =====================================================
+          DAILY PLAN
+          ===================================================== */}
+
+      <section className="daily-plan-section">
+
+        <div className="daily-plan-card">
+
+          <div className="daily-plan-heading">
+
+            <div className="plan-icon">
+              ✓
             </div>
 
             <div>
-              <span className="section-kicker">A SIMPLE ROUTINE</span>
 
-              <h2>Build a sustainable work rhythm</h2>
+              <span>
+                SIMPLE DAILY ROUTINE
+              </span>
+
+              <h2>
+                A healthier workday
+              </h2>
+
+              <p>
+                Use this as a flexible guide rather than
+                a strict schedule.
+              </p>
+
             </div>
+
           </div>
 
-          <div className="routine-grid">
 
-            <div className="routine-step">
-              <span>01</span>
-              <div>
-                <h3>Start with a clear priority</h3>
-                <p>
-                  Identify the most important task before beginning your
-                  workday instead of trying to handle everything at once.
-                </p>
+          <div className="daily-plan-grid">
+
+            {dailyPlan.map((item, index) => (
+              <div
+                className="plan-item"
+                key={index}
+              >
+
+                <span className="plan-time">
+                  {item.time}
+                </span>
+
+                <div className="plan-line">
+                  <span></span>
+                </div>
+
+                <div className="plan-content">
+
+                  <strong>
+                    {item.title}
+                  </strong>
+
+                  <p>
+                    {item.description}
+                  </p>
+
+                </div>
+
               </div>
-            </div>
-
-            <div className="routine-step">
-              <span>02</span>
-              <div>
-                <h3>Work in focused intervals</h3>
-                <p>
-                  Divide longer work sessions into manageable periods and
-                  include short recovery breaks.
-                </p>
-              </div>
-            </div>
-
-            <div className="routine-step">
-              <span>03</span>
-              <div>
-                <h3>Disconnect when work ends</h3>
-                <p>
-                  Give yourself time away from work-related screens and
-                  responsibilities to support mental recovery.
-                </p>
-              </div>
-            </div>
+            ))}
 
           </div>
-        </section>
 
-        {/* -------------------------------------------------
-            FINAL MESSAGE
-        ------------------------------------------------- */}
+        </div>
 
-        <section className="recommendations-footer-card">
+      </section>
 
-          <div className="footer-card-icon">
-            <HeartPulse size={28} />
-          </div>
 
-          <div className="footer-card-content">
-            <span className="section-kicker">REMEMBER</span>
+      {/* =====================================================
+          DISCLAIMER
+          ===================================================== */}
 
-            <h2>Productivity should be sustainable.</h2>
+      <div className="recommendation-disclaimer">
 
-            <p>
-              Burnout is not something that should be ignored. Use your
-              assessment as an early-warning signal and make small,
-              consistent changes to your work and recovery routine.
-            </p>
+        <span className="disclaimer-icon">
+          i
+        </span>
 
-            <p className="footer-note">
-              This assessment is intended for awareness and wellness guidance,
-              not as a medical diagnosis.
-            </p>
-          </div>
+        <div>
 
-        </section>
+          <strong>
+            Important note
+          </strong>
 
-        {/* -------------------------------------------------
-            BOTTOM ACTIONS
-        ------------------------------------------------- */}
-
-        <div className="recommendations-actions">
-
-          <Link to="/result" className="recommendations-secondary-btn">
-            <ArrowLeft size={18} />
-            View My Results
-          </Link>
-
-          <Link to="/assessment" className="recommendations-primary-btn">
-            Take Assessment Again
-            <ArrowRight size={18} />
-          </Link>
+          <p>
+            These recommendations are intended for
+            general wellness and early awareness. They
+            are not a medical diagnosis or a substitute
+            for professional healthcare advice. If
+            burnout, stress, anxiety, or low mood is
+            significantly affecting your daily life,
+            consider speaking with a qualified
+            professional.
+          </p>
 
         </div>
 
       </div>
-    </main>
+
+
+      {/* =====================================================
+          ACTION BUTTONS
+          ===================================================== */}
+
+      <div className="recommendation-actions">
+
+        <button
+          className="secondary-btn"
+          onClick={() =>
+            navigate("/result", {
+              state: {
+                assessmentData,
+                result: predictionResult,
+              },
+            })
+          }
+        >
+          ← Back to Result
+        </button>
+
+
+        <button
+          className="primary-btn"
+          onClick={() =>
+            navigate("/Home")
+          }
+        >
+          Go to Dashboard <span>→</span>
+        </button>
+
+      </div>
+
+    </div>
   );
 };
 

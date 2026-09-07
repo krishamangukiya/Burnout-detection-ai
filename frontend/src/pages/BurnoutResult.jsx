@@ -350,7 +350,7 @@ const BurnoutResult = () => {
         numericImpact: impact,
 
         width: `${Math.min(
-          Math.abs(impact) * 200,
+          Math.abs(impact) * 100,
           100
         )}%`,
       };
@@ -460,10 +460,10 @@ const BurnoutResult = () => {
 
               <h2>
 
-                {burnoutScore.toFixed(2)}
+                {scorePercentage.toFixed(1)}
 
                 <small>
-                  /10
+                  %
                 </small>
 
               </h2>
