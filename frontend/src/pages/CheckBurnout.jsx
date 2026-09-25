@@ -339,59 +339,34 @@ function CheckBurnout() {
   // =========================================================
 
   const prepareAssessmentData = () => {
-    const anxietyScore = calculateAnxietyScore();
-    const depressionScore = calculateDepressionScore();
-  
     return {
       age: Number(formData.age),
-  
       gender: formData.gender,
-  
       job_role: formData.job_role,
-  
       experience_years: Number(formData.experience_years),
-  
       company_size: formData.company_size,
-  
       work_mode: formData.work_mode,
   
       work_hours_per_week: Number(formData.work_hours_per_week),
-  
       overtime_hours: Number(formData.overtime_hours),
-  
       meetings_per_day: Number(formData.meetings_per_day),
-  
       deadlines_missed: Number(formData.deadlines_missed),
   
       job_satisfaction: Number(formData.job_satisfaction),
-  
       manager_support: Number(formData.manager_support),
-  
       work_life_balance: Number(formData.work_life_balance),
   
       sleep_hours: Number(formData.sleep_hours),
-  
       physical_activity_days: Number(formData.physical_activity_days),
-  
       screen_time_hours: Number(formData.screen_time_hours),
-  
       caffeine_intake: Number(formData.caffeine_intake),
-  
       social_support_score: Number(formData.social_support_score),
-  
-      // Convert Yes/No into the format expected by the ML model
-      has_therapy:
-        formData.has_therapy === "Yes" ? 1 : 0,
+      has_therapy: formData.has_therapy,
   
       stress_level: Number(formData.stress_level),
-  
-      anxiety_score: anxietyScore,
-  
-      depression_score: depressionScore,
-  
-      // Convert Yes/Maybe/No into the format expected by the ML model
-      seeks_professional_help:
-        formData.seeks_professional_help === "Yes" ? 1 : 0,
+      anxiety_score: calculateAnxietyScore(),
+      depression_score: calculateDepressionScore(),
+      seeks_professional_help: formData.seeks_professional_help,
     };
   };
   // =========================================================
@@ -690,21 +665,10 @@ function CheckBurnout() {
                     value={formData.gender}
                     onChange={handleChange}
                   >
-                    <option value="">
-                      Select gender
-                    </option>
-
-                    <option value="Male">
-                      Male
-                    </option>
-
-                    <option value="Female">
-                      Female
-                    </option>
-
-                    <option value="Other">
-                      Other
-                    </option>
+                   <option value="">Select gender</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Non-binary">Non-binary</option>
 
                   </select>
 
@@ -725,53 +689,15 @@ function CheckBurnout() {
                     value={formData.job_role}
                     onChange={handleChange}
                   >
-                    <option value="">
-                      Select your role
-                    </option>
-
-                    <option value="Software Engineer">
-                      Software Engineer
-                    </option>
-
-                    <option value="Developer">
-                      Developer
-                    </option>
-
-                    <option value="Data Scientist">
-                      Data Scientist
-                    </option>
-
-                    <option value="Data Analyst">
-                      Data Analyst
-                    </option>
-
-                    <option value="Manager">
-                      Manager
-                    </option>
-
-                    <option value="Team Lead">
-                      Team Lead
-                    </option>
-
-                    <option value="Designer">
-                      Designer
-                    </option>
-
-                    <option value="Consultant">
-                      Consultant
-                    </option>
-
-                    <option value="Teacher">
-                      Teacher
-                    </option>
-
-                    <option value="Healthcare Professional">
-                      Healthcare Professional
-                    </option>
-
-                    <option value="Other">
-                      Other
-                    </option>
+                   <option value="">Select job role</option>
+                    <option value="Backend Developer">Backend Developer</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Frontend Developer">Frontend Developer</option>
+                    <option value="ML Engineer">ML Engineer</option>
+                    <option value="Product Manager">Product Manager</option>
+                    <option value="QA Engineer">QA Engineer</option>
+                    <option value="Software Engineer">Software Engineer</option>
 
                   </select>
 
@@ -815,21 +741,11 @@ function CheckBurnout() {
                     value={formData.company_size}
                     onChange={handleChange}
                   >
-                    <option value="">
-                      Select company size
-                    </option>
-
-                    <option value="Small">
-                      Small
-                    </option>
-
-                    <option value="Medium">
-                      Medium
-                    </option>
-
-                    <option value="Large">
-                      Large
-                    </option>
+                    <option value="">Select company size</option>
+                    <option value="Startup">Startup</option>
+                    <option value="Mid-size">Mid-size</option>
+                    <option value="MNC">MNC</option>
+                    <option value="Large">Large</option>
 
                   </select>
 
@@ -850,21 +766,10 @@ function CheckBurnout() {
                     value={formData.work_mode}
                     onChange={handleChange}
                   >
-                    <option value="">
-                      Select work mode
-                    </option>
-
-                    <option value="On-site">
-                      On-site
-                    </option>
-
-                    <option value="Hybrid">
-                      Hybrid
-                    </option>
-
-                    <option value="Remote">
-                      Remote
-                    </option>
+                    <option value="">Select work mode</option>
+                    <option value="Onsite">Onsite</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Remote">Remote</option>
 
                   </select>
 
