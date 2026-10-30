@@ -297,64 +297,55 @@ const BurnoutResult = () => {
     100
   );
 
+  
   // =========================================================
   // SHAP FACTORS
   // =========================================================
 
-  const shapExplanation =
-    Array.isArray(result.explanation)
-      ? result.explanation
+  // The backend returns top_factors and shap_explanation.
+  // Use top_factors for the five strongest contributing factors.
+  const shapExplanation = Array.isArray(result.top_factors)
+    ? result.top_factors
+    : Array.isArray(result.shap_explanation)
+      ? result.shap_explanation
       : [];
 
-  // Display strongest 5 factors
-  const factors = shapExplanation
+  // Rank factors by absolute SHAP impact.
+  const factors = [...shapExplanation]
+    .sort(
+      (a, b) =>
+        Math.abs(Number(b.impact || 0)) -
+        Math.abs(Number(a.impact || 0))
+    )
     .slice(0, 5)
     .map((item) => {
+      const impact = Number(item.impact || 0);
 
-      const impact = Number(
-        item.impact || 0
-      );
+      const type =
+        item.direction === "increases"
+          ? "negative"
+          : item.direction === "decreases"
+            ? "positive"
+            : "warning";
 
-      let type = "warning";
-      let impactText = "Neutral";
-
-      if (item.direction === "increases") {
-        type = "negative";
-        impactText = "Increases risk";
-      }
-
-      if (item.direction === "decreases") {
-        type = "positive";
-        impactText = "Reduces risk";
-      }
+      const impactText =
+        item.direction === "increases"
+          ? "Increases risk"
+          : item.direction === "decreases"
+            ? "Reduces risk"
+            : "Neutral";
 
       return {
-        name: formatFeatureName(
-          item.feature
-        ),
-
-        value:
-          impact > 0
-            ? `+${impact.toFixed(2)}`
-            : impact.toFixed(2),
-
+        name: formatFeatureName(item.feature),
+        value: `${impact > 0 ? "+" : ""}${impact.toFixed(2)}`,
         impact: impactText,
-
         type,
-
-        shap:
-          impact > 0
-            ? `+${impact.toFixed(2)}`
-            : impact.toFixed(2),
-
+        shap: `${impact > 0 ? "+" : ""}${impact.toFixed(2)}`,
         numericImpact: impact,
-
-        width: `${Math.min(
-          Math.abs(impact) * 100,
-          100
-        )}%`,
+        width: `${Math.min(Math.abs(impact) * 100, 100)}%`,
       };
     });
+
 
   // =========================================================
   // INTERPRETATION
@@ -995,18 +986,19 @@ const BurnoutResult = () => {
 
 
         <button
-          className="primary-btn"
-          onClick={() =>
-            navigate("/Home")
-          }
+          className="secondary-btn"
+          onClick={() => navigate("/history")}
         >
+          View History & Trends
+          <span>📈</span>
+        </button>
 
+        <button
+          className="primary-btn"
+          onClick={() => navigate("/Home")}
+        >
           Go to Dashboard
-
-          <span>
-            →
-          </span>
-
+          <span>→</span>
         </button>
 
       </section>
@@ -1021,19 +1013,16 @@ const BurnoutResult = () => {
 // Convert feature names into readable names
 // =============================================================
 
-function formatFeatureName(feature) {
 
+function formatFeatureName(feature) {
   if (!feature) {
     return "Unknown Factor";
   }
 
-  return feature
-    .replace(/^num__/, "")
-    .replace(/^cat__/, "")
+  return String(feature)
+    .replace(/^(numerical|categorical|num|cat)__/, "")
     .replace(/_/g, " ")
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase()
-    );
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 
